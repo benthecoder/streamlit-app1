@@ -1,15 +1,21 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import numpy as np
+import plotly as plt
+
+st.title("Covid-19 Dashboard")
+st.subheader("Data Source: Our World in Data")
+
+DATA_URL = ('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
 
 @st.cache
-def get_data():
-    url = "http://data.insideairbnb.com/united-states/ny/new-york-city/2019-09-12/visualisations/listings.csv"
-    return pd.read_csv(url)
-df = get_data()
+def load_data():
+    data = pd.read_csv(DATA_URL)
+    lowercase = lambda x: str(x).lower()
+    data.rename(lowercase, axis="columns", inplace=True)
+    return data
+df = load_data()
 
-st.title("Hello streamlit")
-st.subheader("My first streamlit app")
-st.write("COVID-19 dashboard app coming soon")
-
-st.dataframe(df.head())
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(df)
