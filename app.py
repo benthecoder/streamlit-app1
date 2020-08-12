@@ -1,21 +1,90 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly as plt
+import plotly.express as px
+import pydeck as pdk
 
 st.title("Covid-19 Dashboard")
 st.subheader("Data Source: Our World in Data")
 
-DATA_URL = ('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
+#Load and Cache the data
+@st.cache(persist=True)
+def getmedata():
+    url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
+    df = pd.read_csv(url, delimiter=',', header='infer')
+    df.rename(index=lambda x: df.at[x, 'Country/Region'], inplace=True)
+    dft = df.loc[df['Province/State'].isnull()]
+    dft = dft.transpose()
+    dft = dft.drop(['Province/State', 'Country/Region', 'Lat', 'Long'])
+    dft.index = pd.to_datetime(dft.index)
+    return(dft, df)
+df1 = getmedata()[0]
 
-@st.cache
-def load_data():
-    data = pd.read_csv(DATA_URL)
-    lowercase = lambda x: str(x).lower()
-    data.rename(lowercase, axis="columns", inplace=True)
-    return data
-df = load_data()
+# In Scope Countries
+countrylist = df1.columns.tolist()
+countrylist1 = ['US']
+x = st.multiselect('Choose in scope countries', countrylist, countrylist1)
+df1_inscope = df1[x]
+dailytotal = st.selectbox('Toggle between Daily and Total number of deaths', ('Daily', 'Total'))
+if dailytotal == 'Daily':
+    plotdata = df1_inscope.diff() #day on day changes
+else:
+    plotdata = df1_inscope
 
-if st.checkbox('Show raw data'):
-    st.subheader('Raw data')
-    st.write(df)
+# Move to Line graph
+if dailytotal == 'Daily':
+    st.header('Daily number of deaths')
+else:
+    st.header('Total Number of deaths: ' + str(plotdata.iloc[:, 0][plotdata.index[-1]]))
+fig = px.line()
+for i,n in enumerate(plotdata.columns):
+    fig.add_scatter(x=plotdata.index, y= plotdata[plotdata.columns[i]], name= plotdata.columns[i])
+fig.update_layout(
+     xaxis_title = 'Dates'
+    ,yaxis_title = 'Number of Deaths'
+    ,template = 'seaborn' #"plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"
+    ,legend=dict(orientation="h", yanchor = 'top', y = 1.2)
+)
+fig.update_xaxes(
+    rangeslider_visible=True,
+    rangeselector=dict(
+        buttons=list([
+            dict(count=7, label="1w", step="day", stepmode="backward"),
+            dict(count=1, label="1m", step="month", stepmode="backward"),
+            dict(count=2, label="2m", step="month", stepmode="backward"),
+            dict(step="all")
+        ]),
+        font = dict( color='#000000', size = 11),
+    )
+)
+st.plotly_chart(fig, use_container_width=True)
+
+showdata = st.sidebar.checkbox('Show Line graph data')
+if showdata == True:
+    st.dataframe(plotdata)
+else:
+    st.write()
+
+
+# Plot a streamlit map
+st.header('Explore the epidemic spreading with a map')
+df2 = getmedata()[1]
+df2.rename(columns={'Lat': 'lat', 'Long': 'lon', 'Province/State': 'Province', 'Country/Region': 'Country'}, inplace=True)
+
+maxslide = len(df2.columns) - 5
+slide = st.slider('Day of epidemic spread', 0, maxslide, 50)
+datecolumn = df2.columns[slide + 4]
+datecolumnlist = [datecolumn]
+st.subheader('Cases Recorded on ' + datecolumn)
+
+dfmap = df2[['Country','Province', 'lat', 'lon', datecolumn]]
+dfmap = dfmap.replace(0,np.nan).dropna(subset = [datecolumn, 'lat', 'lon'])
+
+st.map(dfmap[['lat','lon']])
+
+mapgraph = st.sidebar.checkbox('Show map data')
+if mapgraph == True:
+    st.dataframe(dfmap)
+    st.write()
+else:
+    st.write()
