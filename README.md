@@ -4,4 +4,5 @@ This is my simple COVID-19 death count dashboard. I am continually making it bet
 
 
 references
-(link1)[https://towardsdatascience.com/learn-how-to-create-web-data-apps-in-python-b50b624f4a0e]
+
+1. [link1](https://towardsdatascience.com/learn-how-to-create-web-data-apps-in-python-b50b624f4a0e)
