@@ -17,25 +17,25 @@ def getmedata():
     dft = dft.transpose()
     dft = dft.drop(['Province/State', 'Country/Region', 'Lat', 'Long'])
     dft.index = pd.to_datetime(dft.index)
+    dft['Worldwide']= dft.sum(axis=1)
     return(dft, df)
 df1 = getmedata()[0]
 
-# In Scope Countries
 countrylist = df1.columns.tolist()
-countrylist1 = ['US']
+countrylist1 = ['Worldwide']
 x = st.multiselect('Choose countries', countrylist, countrylist1)
 df1_inscope = df1[x]
-dailytotal = st.selectbox('Toggle between Daily and Total number of deaths', ('Daily', 'Total'))
-if dailytotal == 'Daily':
-    plotdata = df1_inscope.diff() #day on day changes
+dailytotal = st.selectbox('Toggle between Daily and Total number of deaths', ('Total', 'Daily'))
+if dailytotal == 'Total':
+    plotdata = df1_inscope #day on day changes
 else:
-    plotdata = df1_inscope
+    plotdata = df1_inscope.diff()
 
 # Move to Line graph
-if dailytotal == 'Daily':
-    st.header('Daily number of deaths')
-else:
+if dailytotal == 'Total':
     st.header('Total Number of deaths: ' + str(plotdata.iloc[:, 0][plotdata.index[-1]]))
+else:
+    st.header('Daily number of deaths')
 fig = px.line()
 for i,n in enumerate(plotdata.columns):
     fig.add_scatter(x=plotdata.index, y= plotdata[plotdata.columns[i]], name= plotdata.columns[i])
