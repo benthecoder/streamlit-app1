@@ -5,7 +5,7 @@ import plotly.express as px
 import pydeck as pdk
 
 st.title("Covid-19 Dashboard")
-st.subheader("Data Source: Our World in Data")
+st.subheader("Data Source: CSSE at Johns Hopkins University ")
 
 #Load and Cache the data
 @st.cache(persist=True)
@@ -23,7 +23,7 @@ df1 = getmedata()[0]
 # In Scope Countries
 countrylist = df1.columns.tolist()
 countrylist1 = ['US']
-x = st.multiselect('Choose in scope countries', countrylist, countrylist1)
+x = st.multiselect('Choose countries', countrylist, countrylist1)
 df1_inscope = df1[x]
 dailytotal = st.selectbox('Toggle between Daily and Total number of deaths', ('Daily', 'Total'))
 if dailytotal == 'Daily':
