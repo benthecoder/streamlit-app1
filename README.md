@@ -6,3 +6,19 @@ This is my simple COVID-19 death count dashboard. I am continually making it bet
 references
 
 1. [link1](https://towardsdatascience.com/learn-how-to-create-web-data-apps-in-python-b50b624f4a0e)
+
+Data Source
+
+* [COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University](COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University)
+
+Libraries 
+* pandas
+* numpy
+* plotlu
+* pydeck
+
+Front-end framework
+* Streamlit
+
+Deployment 
+* Heroku
